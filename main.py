@@ -1,6 +1,10 @@
-def main():
-    print("Hello from task-manager!")
+from fastapi import FastAPI
+from src.api import task
 
+app = FastAPI()
 
-if __name__ == "__main__":
-    main()
+app.include_router(task.router)
+
+@app.get("/")
+async def root():
+    return {"message": "Welcome to the Task Manager API"}
