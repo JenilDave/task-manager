@@ -1,10 +1,10 @@
 
 def is_new_status_valid(current_status: str, new_status: str) -> bool:
     valid_transitions = {
-        "pending": ["in_progress", "completed", "failed"],
-        "in_progress": ["completed", "failed"],
-        "completed": [],
-        "failed": []
+        "CREATED": "IN_PROGRESS",
+        "IN_PROGRESS": "BLOCKED",
+        "BLOCKED": "IN_PROGRESS",
+        "IN_PROGRESS": "COMPLETED",
     }
 
     allowed_transitions = valid_transitions.get(current_status, [])
