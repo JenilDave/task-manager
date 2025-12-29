@@ -1,4 +1,5 @@
 from src.db.task_status import TaskStatus
+from src.db.task_status_history import TaskStatusHistory
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_
 from src.service.verify_status import is_new_status_valid
@@ -54,10 +55,18 @@ async def update_task_status(
     if not task:
         return None
 
+    old_status = task.status
     if not is_new_status_valid(task.status, new_status):
         return None
 
     task.status = new_status
+
+    status_history = TaskStatusHistory(
+        task_id=task.id,
+        from_state=old_status,
+        to_state=new_status,
+    )
+    session.add(status_history)
 
     try:
         await session.commit()
