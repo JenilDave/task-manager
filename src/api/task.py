@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks
 from src.utils.db import get_db_session
 from src.service.task_service import create_task, update_task_status, get_task_by_id
 from src.schema.task import CreateTaskPayload, TaskResponse, UpdateTaskStatusPayload
@@ -49,6 +49,7 @@ async def create_new_task(request: CreateTaskPayload, session=Depends(get_db_ses
 @router.put("/{task_id}/status")
 async def update_task(
     request: UpdateTaskStatusPayload,
+    background_tasks: BackgroundTasks = None,
     session=Depends(get_db_session),
 ) -> TaskResponse:
 
@@ -56,6 +57,7 @@ async def update_task(
         session,
         request.task_id,
         request.new_status,
+        background_tasks,
     )
 
     if task is None:
