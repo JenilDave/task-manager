@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_
 from src.service.status import is_new_status_valid, is_final_status
 from fastapi import BackgroundTasks
+from src.utils.logger import logger
 
 async def get_task_by_id(session: AsyncSession, task_id: int) -> TaskStatus:
     return await session.get(TaskStatus, task_id)
@@ -39,8 +40,10 @@ async def create_task(
 
     try:
         await session.commit()
+        logger.info(f"Created new task with ID: {new_task.id}")
     except Exception:
         await session.rollback()
+        logger.error(f"Failed to create new task with ID: {new_task.id}")
         raise
 
     await session.refresh(new_task)
@@ -60,6 +63,7 @@ async def update_task_status(
 
     old_status = task.status
     if not is_new_status_valid(task.status, new_status):
+        logger.warning(f"Invalid status transition from {old_status} to {new_status} for task ID: {task.id}")
         return None
 
     task.status = new_status
@@ -73,11 +77,14 @@ async def update_task_status(
 
     if is_final_status(new_status) and background_tasks:
         background_tasks.add_task(update_task_result, session, task.id, "COMPLETED", "Task has been completed successfully.")
+        logger.info(f"Scheduled background task to update result for task ID: {task.id}")
 
     try:
         await session.commit()
+        logger.info(f"Updated task ID: {task.id} from {old_status} to {new_status}")
     except Exception:
         await session.rollback()
+        logger.error(f"Failed to update task ID: {task.id} from {old_status} to {new_status}")
         raise
 
     await session.refresh(task)
@@ -92,8 +99,10 @@ async def update_task_result(session, task_id: int, status: str, message: str = 
     session.add(task_result)
     try:
         await session.commit()
+        logger.info(f"Updated task result for task ID: {task_id} with status: {status}")
     except Exception:
         await session.rollback()
+        logger.error(f"Failed to update task result for task ID: {task_id} with status: {status}")
         raise
 
     await session.refresh(task_result)
