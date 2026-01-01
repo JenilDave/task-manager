@@ -3,7 +3,7 @@ from src.db.task_status_history import TaskStatusHistory
 from src.db.task_result import TaskResult
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_
-from src.service.status import is_new_status_valid, is_final_status
+from src.service.common import is_new_status_valid, is_final_status
 from fastapi import BackgroundTasks
 from src.utils.logger import logger
 
