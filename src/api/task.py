@@ -1,7 +1,8 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks
 from src.utils.db import get_db_session
 from src.service.task_service import create_task, update_task_status, get_task_by_id
 from src.schema.task import CreateTaskPayload, TaskResponse, UpdateTaskStatusPayload
+from src.api.deps import CurrentUser
 
 router = APIRouter(
     prefix="/tasks",
@@ -10,7 +11,7 @@ router = APIRouter(
 )
 
 @router.get("/{task_id}")
-async def read_task(task_id: int, session=Depends(get_db_session)) -> TaskResponse:
+async def read_task(task_id: int, current_user: CurrentUser, session=Depends(get_db_session)) -> TaskResponse:
 
     task = await get_task_by_id(session, task_id)
     if not task:
@@ -24,7 +25,7 @@ async def read_task(task_id: int, session=Depends(get_db_session)) -> TaskRespon
     )
 
 @router.post("/create")
-async def create_new_task(request: CreateTaskPayload, session=Depends(get_db_session)) -> TaskResponse:
+async def create_new_task(request: CreateTaskPayload, current_user: CurrentUser, session=Depends(get_db_session)) -> TaskResponse:
 
     task = await create_task(
         session,
@@ -49,6 +50,8 @@ async def create_new_task(request: CreateTaskPayload, session=Depends(get_db_ses
 @router.put("/{task_id}/status")
 async def update_task(
     request: UpdateTaskStatusPayload,
+    current_user: CurrentUser,
+    background_tasks: BackgroundTasks = None,
     session=Depends(get_db_session),
 ) -> TaskResponse:
 
@@ -56,6 +59,7 @@ async def update_task(
         session,
         request.task_id,
         request.new_status,
+        background_tasks,
     )
 
     if task is None:
