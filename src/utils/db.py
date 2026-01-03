@@ -1,8 +1,9 @@
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_scoped_session, async_sessionmaker
 from typing import AsyncGenerator
 from asyncio import current_task
+from src.utils.constants import DB_URL
 
-_engine = create_async_engine("sqlite+aiosqlite:///D:\\Storage\\sqlite\\task-manager\\manager.db")
+_engine = create_async_engine(DB_URL)
 
 async_session = async_sessionmaker(
     bind= _engine,
